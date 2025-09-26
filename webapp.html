@@ -489,7 +489,7 @@
     <div class="container">
         <div class="header">
             <h1>视频分数可视化</h1>
-            <p>按分数排序并设置筛选阈值</p>
+            <p>按分数排序并设置筛选阈值 - 视频自动循环播放</p>
         </div>
 
         <div class="controls">
@@ -660,7 +660,7 @@
 
         window.handleVideoCanPlay = function(video) {
             const status = video.parentElement.querySelector('.video-status');
-            status.textContent = '可以播放';
+            status.textContent = '可以播放 (自动循环)';
             status.className = 'video-status loaded';
             console.log('视频可以播放:', video.src);
         };
@@ -817,7 +817,7 @@
                 videoCard.innerHTML = `
                     <div class="video-rank">#${globalIndex + 1}</div>
                     <div class="video-preview-container">
-                        <video class="video-preview" controls muted preload="metadata" 
+                        <video class="video-preview" controls muted autoplay loop preload="metadata" 
                                onerror="handleVideoError(this)" 
                                onloadstart="handleVideoLoadStart(this)"
                                onloadedmetadata="handleVideoLoaded(this)"
