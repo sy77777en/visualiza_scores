@@ -1,0 +1,607 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>视频分数可视化 - 数据集选择</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+            padding: 40px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.8em;
+            margin-bottom: 15px;
+            font-weight: 300;
+        }
+
+        .header p {
+            opacity: 0.9;
+            font-size: 1.2em;
+        }
+
+        .selection-content {
+            padding: 50px;
+        }
+
+        .section-title {
+            font-size: 2em;
+            color: #333;
+            margin-bottom: 30px;
+            font-weight: 600;
+            text-align: center;
+        }
+
+        .selection-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 40px;
+            margin-bottom: 40px;
+        }
+
+        .selection-card {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+            border-left: 5px solid #4facfe;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .selection-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.15);
+        }
+
+        .card-title {
+            font-size: 1.4em;
+            color: #333;
+            margin-bottom: 20px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .card-icon {
+            font-size: 1.2em;
+        }
+
+        .dataset-selector, .label-selector, .model-selector {
+            width: 100%;
+            padding: 15px 20px;
+            border: 2px solid #e9ecef;
+            border-radius: 10px;
+            font-size: 16px;
+            background: white;
+            transition: all 0.3s ease;
+            margin-bottom: 15px;
+        }
+
+        .dataset-selector:focus, .label-selector:focus, .model-selector:focus {
+            outline: none;
+            border-color: #4facfe;
+            box-shadow: 0 0 0 4px rgba(79, 172, 254, 0.1);
+            transform: translateY(-2px);
+        }
+
+        .selector-disabled {
+            background-color: #f8f9fa;
+            color: #6c757d;
+            cursor: not-allowed;
+        }
+
+        .parameters-section {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+            margin-bottom: 40px;
+        }
+
+        .parameter-group {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            margin-bottom: 25px;
+            flex-wrap: wrap;
+        }
+
+        .parameter-group label {
+            font-weight: 600;
+            color: #495057;
+            min-width: 180px;
+            font-size: 1.1em;
+        }
+
+        .parameter-input {
+            padding: 15px 20px;
+            border: 2px solid #e9ecef;
+            border-radius: 10px;
+            font-size: 16px;
+            width: 250px;
+            transition: all 0.3s ease;
+        }
+
+        .parameter-input:focus {
+            outline: none;
+            border-color: #4facfe;
+            box-shadow: 0 0 0 4px rgba(79, 172, 254, 0.1);
+            transform: translateY(-2px);
+        }
+
+        .parameter-help {
+            font-size: 0.9em;
+            color: #6c757d;
+            margin-left: 10px;
+        }
+
+        .load-data-btn {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+            border: none;
+            padding: 20px 40px;
+            border-radius: 12px;
+            font-size: 20px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: block;
+            margin: 0 auto;
+            min-width: 200px;
+        }
+
+        .load-data-btn:hover:not(:disabled) {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 30px rgba(79, 172, 254, 0.4);
+        }
+
+        .load-data-btn:disabled {
+            background: linear-gradient(135deg, #6c757d 0%, #adb5bd 100%);
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .message {
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+            display: none;
+            text-align: center;
+            font-weight: 500;
+        }
+
+        .error-message {
+            color: #721c24;
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+        }
+
+        .success-message {
+            color: #155724;
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+        }
+
+        .loading-message {
+            color: #856404;
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+        }
+
+        .info-panel {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 30px;
+            border-left: 4px solid #17a2b8;
+        }
+
+        .info-panel h3 {
+            color: #17a2b8;
+            margin-bottom: 10px;
+        }
+
+        .info-panel p {
+            color: #6c757d;
+            line-height: 1.6;
+        }
+
+        @media (max-width: 768px) {
+            .selection-grid {
+                grid-template-columns: 1fr;
+                gap: 30px;
+            }
+            
+            .parameter-group {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 10px;
+            }
+
+            .parameter-input {
+                width: 100%;
+            }
+
+            .selection-content {
+                padding: 30px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>视频分数可视化工具</h1>
+            <p>选择数据集、标签和模型进行视频分析</p>
+        </div>
+
+        <div class="selection-content">
+            <div class="info-panel">
+                <h3>📋 使用说明</h3>
+                <p>请依次选择数据集、标签和模型，然后设置分析参数。系统将自动加载对应的JSON数据文件进行可视化分析。</p>
+            </div>
+
+            <h2 class="section-title">数据选择</h2>
+            
+            <div class="selection-grid">
+                <div class="selection-card">
+                    <h3 class="card-title">
+                        <span class="card-icon">📁</span>
+                        数据集选择
+                    </h3>
+                    <select id="datasetSelector" class="dataset-selector">
+                        <option value="">请选择数据集...</option>
+                    </select>
+                    
+                    <select id="labelSelector" class="label-selector selector-disabled">
+                        <option value="">请先选择数据集...</option>
+                    </select>
+                </div>
+
+                <div class="selection-card">
+                    <h3 class="card-title">
+                        <span class="card-icon">🤖</span>
+                        模型选择
+                    </h3>
+                    <select id="modelSelector" class="model-selector selector-disabled">
+                        <option value="">请先选择标签...</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="parameters-section">
+                <h3 class="card-title">
+                    <span class="card-icon">⚙️</span>
+                    分析参数
+                </h3>
+                <div class="parameter-group">
+                    <label for="segmentInput">分割阈值 (Segment):</label>
+                    <input type="number" id="segmentInput" class="parameter-input" value="0.1" step="0.01" min="0" max="1" placeholder="例如: 0.1">
+                    <span class="parameter-help">用于分割视频段的阈值</span>
+                </div>
+                <div class="parameter-group">
+                    <label for="maxCasesInput">每段最大案例数:</label>
+                    <input type="number" id="maxCasesInput" class="parameter-input" value="20" min="1" max="100" placeholder="例如: 20">
+                    <span class="parameter-help">限制每个分析段的最大视频数量</span>
+                </div>
+            </div>
+
+            <button id="loadDataBtn" class="load-data-btn" disabled>
+                🚀 开始分析
+            </button>
+            
+            <div class="error-message message" id="errorMessage"></div>
+            <div class="success-message message" id="successMessage"></div>
+            <div class="loading-message message" id="loadingMessage"></div>
+        </div>
+    </div>
+
+    <script>
+        // 获取基础URL
+        const baseUrl = window.location.href.split('/').slice(0, -1).join('/');
+        const datasetPath = `${baseUrl}/dataset`;
+
+        let datasetConfig = null;
+
+        // 显示消息的函数
+        function showMessage(message, type = 'info') {
+            const errorDiv = document.getElementById('errorMessage');
+            const successDiv = document.getElementById('successMessage');
+            const loadingDiv = document.getElementById('loadingMessage');
+            
+            // 隐藏所有消息
+            errorDiv.style.display = 'none';
+            successDiv.style.display = 'none';
+            loadingDiv.style.display = 'none';
+            
+            if (type === 'error') {
+                errorDiv.textContent = message;
+                errorDiv.style.display = 'block';
+            } else if (type === 'success') {
+                successDiv.textContent = message;
+                successDiv.style.display = 'block';
+            } else if (type === 'loading') {
+                loadingDiv.textContent = message;
+                loadingDiv.style.display = 'block';
+            }
+            
+            if (type !== 'loading') {
+                setTimeout(() => {
+                    errorDiv.style.display = 'none';
+                    successDiv.style.display = 'none';
+                }, 5000);
+            }
+        }
+
+        // 加载数据集配置文件
+        async function loadDatasetConfig() {
+            try {
+                showMessage('正在加载数据集配置...', 'loading');
+                
+                const response = await fetch(`${baseUrl}/dataset-config.json`);
+                if (!response.ok) {
+                    throw new Error(`配置文件加载失败: HTTP ${response.status}`);
+                }
+                
+                datasetConfig = await response.json();
+                
+                if (!datasetConfig || !datasetConfig.datasets) {
+                    throw new Error('配置文件格式错误');
+                }
+                
+                showMessage('', 'loading'); // 隐藏loading消息
+                console.log('数据集配置加载成功:', datasetConfig);
+                
+                return true;
+            } catch (error) {
+                showMessage('配置文件加载失败。请确保 dataset-config.json 文件存在且格式正确: ' + error.message, 'error');
+                
+                // 显示帮助信息
+                const helpMessage = document.createElement('div');
+                helpMessage.className = 'info-panel';
+                helpMessage.innerHTML = `
+                    <h3>⚠️ 配置文件缺失</h3>
+                    <p>请在网站根目录创建 <code>dataset-config.json</code> 文件来定义你的数据结构。</p>
+                    <p>文件格式示例：</p>
+                    <pre style="background: #f8f9fa; padding: 10px; border-radius: 5px; font-size: 0.9em; overflow-x: auto;">{
+  "datasets": {
+    "your_dataset": {
+      "display_name": "Your Dataset Name",
+      "labels": {
+        "your_label": {
+          "display_name": "Your Label Name",
+          "models": ["model1", "model2", "model3"]
+        }
+      }
+    }
+  }
+}</pre>
+                `;
+                document.querySelector('.selection-content').insertBefore(helpMessage, document.querySelector('.section-title'));
+                
+                return false;
+            }
+        }
+
+        // 初始化数据集列表
+        function initializeDatasets() {
+            if (!datasetConfig) return;
+            
+            const datasetSelector = document.getElementById('datasetSelector');
+            datasetSelector.innerHTML = '<option value="">请选择数据集...</option>';
+            
+            const datasets = Object.keys(datasetConfig.datasets);
+            
+            if (datasets.length === 0) {
+                datasetSelector.innerHTML = '<option value="">配置文件中未定义任何数据集</option>';
+                showMessage('配置文件中未找到任何数据集定义', 'error');
+                return;
+            }
+            
+            datasets.forEach(datasetKey => {
+                const dataset = datasetConfig.datasets[datasetKey];
+                const option = document.createElement('option');
+                option.value = datasetKey;
+                option.textContent = dataset.display_name || datasetKey;
+                datasetSelector.appendChild(option);
+            });
+            
+            console.log('数据集初始化完成:', datasets);
+        }
+
+        // 更新标签列表
+        function updateLabels(dataset) {
+            const labelSelector = document.getElementById('labelSelector');
+            const modelSelector = document.getElementById('modelSelector');
+            
+            if (!dataset || !datasetConfig) {
+                labelSelector.innerHTML = '<option value="">请先选择数据集...</option>';
+                labelSelector.className = 'label-selector selector-disabled';
+                modelSelector.innerHTML = '<option value="">请先选择标签...</option>';
+                modelSelector.className = 'model-selector selector-disabled';
+                document.getElementById('loadDataBtn').disabled = true;
+                return;
+            }
+
+            const datasetInfo = datasetConfig.datasets[dataset];
+            if (!datasetInfo || !datasetInfo.labels) {
+                labelSelector.className = 'label-selector selector-disabled';
+                labelSelector.innerHTML = '<option value="">此数据集未配置标签</option>';
+                showMessage(`数据集 "${dataset}" 未配置标签信息`, 'error');
+                return;
+            }
+            
+            const labels = Object.keys(datasetInfo.labels);
+            if (labels.length === 0) {
+                labelSelector.className = 'label-selector selector-disabled';
+                labelSelector.innerHTML = '<option value="">此数据集中未定义标签</option>';
+                return;
+            }
+            
+            labelSelector.className = 'label-selector';
+            labelSelector.innerHTML = '<option value="">请选择标签...</option>';
+            
+            labels.forEach(labelKey => {
+                const label = datasetInfo.labels[labelKey];
+                const option = document.createElement('option');
+                option.value = labelKey;
+                option.textContent = label.display_name || labelKey;
+                labelSelector.appendChild(option);
+            });
+
+            console.log(`数据集 ${dataset} 的标签:`, labels);
+
+            // 重置模型选择器
+            modelSelector.innerHTML = '<option value="">请先选择标签...</option>';
+            modelSelector.className = 'model-selector selector-disabled';
+            document.getElementById('loadDataBtn').disabled = true;
+        }
+
+        // 更新模型列表
+        function updateModels(dataset, label) {
+            const modelSelector = document.getElementById('modelSelector');
+            
+            if (!dataset || !label || !datasetConfig) {
+                modelSelector.innerHTML = '<option value="">请先选择标签...</option>';
+                modelSelector.className = 'model-selector selector-disabled';
+                document.getElementById('loadDataBtn').disabled = true;
+                return;
+            }
+
+            const datasetInfo = datasetConfig.datasets[dataset];
+            if (!datasetInfo || !datasetInfo.labels || !datasetInfo.labels[label]) {
+                modelSelector.className = 'model-selector selector-disabled';
+                modelSelector.innerHTML = '<option value="">标签配置错误</option>';
+                return;
+            }
+            
+            const labelInfo = datasetInfo.labels[label];
+            const models = labelInfo.models || [];
+            
+            if (models.length === 0) {
+                modelSelector.className = 'model-selector selector-disabled';
+                modelSelector.innerHTML = '<option value="">此标签中未定义模型</option>';
+                return;
+            }
+            
+            modelSelector.className = 'model-selector';
+            modelSelector.innerHTML = '<option value="">请选择模型...</option>';
+            
+            models.forEach(model => {
+                const option = document.createElement('option');
+                option.value = model;
+                option.textContent = model;
+                modelSelector.appendChild(option);
+            });
+
+            console.log(`标签 ${label} 的模型:`, models);
+            document.getElementById('loadDataBtn').disabled = true;
+        }
+
+        // 检查是否可以启用加载按钮
+        function checkLoadButton() {
+            const dataset = document.getElementById('datasetSelector').value;
+            const label = document.getElementById('labelSelector').value;
+            const model = document.getElementById('modelSelector').value;
+            
+            document.getElementById('loadDataBtn').disabled = !(dataset && label && model);
+        }
+
+        // 保存选择到localStorage并跳转
+        function loadData() {
+            const dataset = document.getElementById('datasetSelector').value;
+            const label = document.getElementById('labelSelector').value;
+            const model = document.getElementById('modelSelector').value;
+            const segment = document.getElementById('segmentInput').value;
+            const maxCases = document.getElementById('maxCasesInput').value;
+
+            if (!dataset || !label || !model) {
+                showMessage('请完成所有选择项', 'error');
+                return;
+            }
+
+            // 验证参数
+            const segmentValue = parseFloat(segment);
+            const maxCasesValue = parseInt(maxCases);
+            
+            if (isNaN(segmentValue) || segmentValue <= 0 || segmentValue > 1) {
+                showMessage('分割阈值必须在 0 到 1 之间', 'error');
+                return;
+            }
+            
+            if (isNaN(maxCasesValue) || maxCasesValue <= 0) {
+                showMessage('最大案例数必须大于 0', 'error');
+                return;
+            }
+
+            // 保存选择到localStorage
+            const selectionData = {
+                dataset,
+                label,
+                model,
+                segment: segmentValue,
+                maxCases: maxCasesValue,
+                timestamp: Date.now()
+            };
+
+            localStorage.setItem('videoAnalysisSelection', JSON.stringify(selectionData));
+            
+            showMessage('正在跳转到可视化页面...', 'loading');
+            
+            // 跳转到可视化页面
+            setTimeout(() => {
+                window.location.href = 'visualization.html';
+            }, 1000);
+        }
+
+        // 事件监听器
+        document.getElementById('datasetSelector').addEventListener('change', function(e) {
+            updateLabels(e.target.value);
+        });
+
+        document.getElementById('labelSelector').addEventListener('change', function(e) {
+            const dataset = document.getElementById('datasetSelector').value;
+            updateModels(dataset, e.target.value);
+        });
+
+        document.getElementById('modelSelector').addEventListener('change', checkLoadButton);
+
+        document.getElementById('loadDataBtn').addEventListener('click', loadData);
+
+        // 页面加载完成后初始化
+        document.addEventListener('DOMContentLoaded', async function() {
+            const success = await loadDatasetConfig();
+            if (success) {
+                initializeDatasets();
+            }
+        });
+    </script>
+</body>
+</html>

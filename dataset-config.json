@@ -1,0 +1,13 @@
+{
+  "datasets": {
+    "camerapizza": {
+      "display_name": "Camera Pizza",
+      "labels": {
+        "cut": {
+          "display_name": "Cut Detection",
+          "models": ["TransNetV2"]
+        }
+      }
+    }
+  }
+}
