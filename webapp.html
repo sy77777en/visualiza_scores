@@ -568,7 +568,7 @@
         let sortedVideos = [];
         let currentView = 'grid';
         let currentPage = 1;
-        let videosPerPage = 40;
+        let videosPerPage = 20;
         let totalPages = 1;
 
         // 显示消息的函数
@@ -595,15 +595,42 @@
         // 处理JSON数据的共用函数
         function processJsonData(jsonData) {
             try {
-                videoData = jsonData.map(item => ({
-                    name: item.video_uid,
-                    url: item.url,
-                    score: parseFloat(item.score)
-                }));
+                // 检测JSON格式类型
+                if (jsonData.scores && Array.isArray(jsonData.scores)) {
+                    // 新格式：包含metadata和scores
+                    videoData = jsonData.scores.map(item => ({
+                        name: item.sample_id,
+                        url: `https://huggingface.co/datasets/syCen/camerabench_cut/resolve/main/${item.sample_id}`,
+                        score: parseFloat(item.score),
+                        method: item.method,
+                        error: item.error
+                    }));
+                    showMessage(`成功加载了 ${jsonData.scores.length} 个视频数据 (使用${jsonData.metadata?.method_type || 'Unknown'}方法)`);
+                } else if (Array.isArray(jsonData) && jsonData[0]?.sample_id) {
+                    // 新格式：直接是scores数组
+                    videoData = jsonData.map(item => ({
+                        name: item.sample_id,
+                        url: `https://huggingface.co/datasets/syCen/camerabench_cut/resolve/main/${item.sample_id}`,
+                        score: parseFloat(item.score),
+                        method: item.method,
+                        error: item.error
+                    }));
+                    showMessage(`成功加载了 ${jsonData.length} 个视频数据`);
+                } else if (Array.isArray(jsonData) && jsonData[0]?.video_uid) {
+                    // 旧格式：video_uid和url
+                    videoData = jsonData.map(item => ({
+                        name: item.video_uid,
+                        url: item.url,
+                        score: parseFloat(item.score)
+                    }));
+                    showMessage(`成功加载了 ${jsonData.length} 个视频数据 (旧格式)`);
+                } else {
+                    throw new Error('不支持的JSON格式。请确保数据包含sample_id/video_uid和score字段。');
+                }
                 updateVisualization();
-                showMessage(`成功加载了 ${jsonData.length} 个视频数据`);
             } catch (error) {
                 showMessage('数据处理失败: ' + error.message, true);
+                console.error('数据处理错误:', error);
             }
         }
 
@@ -827,10 +854,12 @@
                         </video>
                         <div class="video-debug-info">
                             <small class="video-status">加载中...</small>
+                            ${video.method ? `<small style="display: block;">方法: ${video.method}</small>` : ''}
+                            ${video.error ? `<small style="display: block; color: #ff6b6b;">错误: ${video.error}</small>` : ''}
                         </div>
                     </div>
                     <div class="video-info">
-                        <div class="video-title ${isCut ? 'cut' : ''}">
+                        <div class="video-title ${isCut ? 'cut' : ''}" title="${video.name}">
                             <a href="${video.url}" target="_blank" title="点击访问视频链接">
                                 ${video.name}
                             </a>
@@ -868,10 +897,10 @@
                 
                 videoItem.innerHTML = `
                     <div class="video-rank">#${globalIndex + 1}</div>
-                    <div class="video-name ${isCut ? 'cut' : ''}">
-                        <a href="${video.url}" target="_blank" rel="noopener noreferrer">
-                            ${video.name}
-                        </a>
+                    <div class="video-name ${isCut ? 'cut' : ''}" title="${video.name}">
+                        <a href="${video.url}" target="_blank" rel="noopener noreferrer">${video.name}</a>
+                        ${video.method ? `<small style="display: block; color: #6c757d; font-size: 0.8em;">方法: ${video.method}</small>` : ''}
+                        ${video.error ? `<small style="display: block; color: #dc3545; font-size: 0.8em;">错误: ${video.error}</small>` : ''}
                     </div>
                     <div class="video-score">${video.score.toFixed(4)}</div>
                     <div class="cut-indicator ${isCut ? 'cut-true' : 'cut-false'}">
@@ -910,18 +939,33 @@
 
         // 示例数据按钮（可选）
         function loadSampleData() {
-            const sampleJson = `[
-  {
-    "video_uid": "cut_8gWlDVgED04.1.4.mp4",
-    "url": "https://huggingface.co/datasets/syCen/camerabench_cut/resolve/main/cut_8gWlDVgED04.1.4.mp4",
-    "score": 0.7821
+            const sampleJson = `{
+  "metadata": {
+    "method_type": "TransNet",
+    "model_name": "TransNetV2",
+    "checkpoint": "",
+    "split_name": "Cut",
+    "generation_timestamp": "2025-09-25"
   },
-  {
-    "video_uid": "cut_eQlXhQ6UtAg.0.8.mp4",
-    "url": "https://huggingface.co/datasets/syCen/camerabench_cut/resolve/main/cut_eQlXhQ6UtAg.0.8.mp4",
-    "score": 0.8298
-  }
-]`;
+  "scores": [
+    {
+      "sample_id": "cut_9EOAivHGS5I.0.10.mp4",
+      "video_path": "https://huggingface.co/datasets/syCen/camerabench_cut/resolve/main/cut_9EOAivHGS5I.0.10.mp4",
+      "ground_truth_label": null,
+      "method": "TransNetV2",
+      "score": 0.9949,
+      "error": null
+    },
+    {
+      "sample_id": "cut_0TqQje61Hoo.2.1.mp4",
+      "video_path": "https://huggingface.co/datasets/syCen/camerabench_cut/resolve/main/cut_0TqQje61Hoo.2.1.mp4",
+      "ground_truth_label": null,
+      "method": "TransNetV2",
+      "score": 0.993,
+      "error": null
+    }
+  ]
+}`;
             document.getElementById('jsonData').value = sampleJson;
         }
     </script>
