@@ -904,4 +904,225 @@
 
         // Column control buttons
         document.querySelectorAll('.control-btn[data-cols]').forEach(btn => {
-            btn.addEventListener('click', function()
+            btn.addEventListener('click', function() {
+                const cols = parseInt(this.dataset.cols);
+                columnsPerRow = cols;
+                
+                // Update button states
+                document.querySelectorAll('.control-btn[data-cols]').forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+                
+                // Update grid classes
+                const videoGrid = document.getElementById('videoGrid');
+                videoGrid.className = `video-grid cols-${cols}`;
+                
+                updateVisualization();
+            });
+        });
+
+        // View toggle buttons
+        document.querySelectorAll('.view-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const view = this.dataset.view;
+                currentView = view;
+                
+                // Update button states
+                document.querySelectorAll('.view-btn').forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+                
+                // Switch views
+                if (view === 'grid') {
+                    document.getElementById('videoGrid').style.display = 'grid';
+                    document.getElementById('videoList').classList.remove('active');
+                } else {
+                    document.getElementById('videoGrid').style.display = 'none';
+                    document.getElementById('videoList').classList.add('active');
+                }
+                
+                updateVisualization();
+            });
+        });
+
+        function sortVideos() {
+            sortedVideos = [...videoData].sort((a, b) => b.score - a.score);
+            totalPages = Math.ceil(sortedVideos.length / videosPerPage);
+            if (currentPage > totalPages && totalPages > 0) {
+                currentPage = 1;
+            }
+        }
+
+        function getCurrentPageVideos() {
+            const startIndex = (currentPage - 1) * videosPerPage;
+            const endIndex = startIndex + videosPerPage;
+            return sortedVideos.slice(startIndex, endIndex);
+        }
+
+        function updatePagination() {
+            const pageInfo = document.getElementById('pageInfo');
+            const prevBtn = document.getElementById('prevPage');
+            const nextBtn = document.getElementById('nextPage');
+
+            if (sortedVideos.length === 0) {
+                pageInfo.textContent = 'Page 0 of 0';
+                prevBtn.disabled = true;
+                nextBtn.disabled = true;
+                return;
+            }
+
+            pageInfo.textContent = `Page ${currentPage} of ${totalPages} (Total ${sortedVideos.length} videos)`;
+            prevBtn.disabled = currentPage <= 1;
+            nextBtn.disabled = currentPage >= totalPages;
+        }
+
+        function updateStats() {
+            if (videoData.length === 0) {
+                document.getElementById('totalCount').textContent = 0;
+                document.getElementById('cutCount').textContent = 0;
+                document.getElementById('averageScore').textContent = 0;
+                document.getElementById('maxScore').textContent = 0;
+                document.getElementById('minScore').textContent = 0;
+                return;
+            }
+
+            const total = videoData.length;
+            const cutCount = sortedVideos.filter(video => video.score > currentThreshold).length;
+            const scores = videoData.map(video => video.score);
+            const averageScore = (scores.reduce((sum, score) => sum + score, 0) / total).toFixed(4);
+            const maxScore = Math.max(...scores).toFixed(4);
+            const minScore = Math.min(...scores).toFixed(4);
+
+            document.getElementById('totalCount').textContent = total;
+            document.getElementById('cutCount').textContent = cutCount;
+            document.getElementById('averageScore').textContent = averageScore;
+            document.getElementById('maxScore').textContent = maxScore;
+            document.getElementById('minScore').textContent = minScore;
+        }
+
+        function renderGridView() {
+            const videoGrid = document.getElementById('videoGrid');
+            
+            if (videoData.length === 0) {
+                videoGrid.innerHTML = '<div style="grid-column: 1/-1; text-align: center; padding: 50px; color: #6c757d; font-size: 1.2em;">No video data available</div>';
+                return;
+            }
+
+            videoGrid.innerHTML = '';
+            const currentPageVideos = getCurrentPageVideos();
+
+            currentPageVideos.forEach((video, pageIndex) => {
+                const globalIndex = (currentPage - 1) * videosPerPage + pageIndex;
+                const isCut = video.score > currentThreshold;
+                
+                const videoCard = document.createElement('div');
+                videoCard.className = `video-card ${isCut ? 'cut' : ''}`;
+                videoCard.style.position = 'relative';
+                
+                videoCard.innerHTML = `
+                    <div class="video-rank">#${globalIndex + 1}</div>
+                    <div class="video-preview-container">
+                        <video class="video-preview" controls muted autoplay loop preload="metadata" 
+                               onerror="handleVideoError(this)" 
+                               onloadstart="handleVideoLoadStart(this)"
+                               onloadedmetadata="handleVideoLoaded(this)"
+                               oncanplay="handleVideoCanPlay(this)">
+                            <source src="${video.url}" type="video/mp4">
+                            Your browser does not support video playback
+                        </video>
+                        <div class="video-debug-info">
+                            <small class="video-status">Loading...</small>
+                            ${video.method ? `<small style="display: block;">Method: ${video.method}</small>` : ''}
+                            ${video.error ? `<small style="display: block; color: #ff6b6b;">Error: ${video.error}</small>` : ''}
+                        </div>
+                    </div>
+                    <div class="video-info">
+                        <div class="video-title ${isCut ? 'cut' : ''}" title="${video.name}">
+                            <a href="${video.url}" target="_blank" title="Click to access video link">
+                                ${video.name}
+                            </a>
+                        </div>
+                        <div class="video-score-display">
+                            <div class="score-badge">${video.score.toFixed(4)}</div>
+                            <div class="cut-status ${isCut ? 'cut-true' : 'cut-false'}">
+                                ${isCut ? 'CUT' : 'KEEP'}
+                            </div>
+                        </div>
+                    </div>
+                `;
+                
+                videoGrid.appendChild(videoCard);
+            });
+        }
+
+        function renderListView() {
+            const videoList = document.getElementById('videoList');
+            
+            if (videoData.length === 0) {
+                videoList.innerHTML = '<div style="text-align: center; padding: 50px; color: #6c757d; font-size: 1.2em;">No video data available</div>';
+                return;
+            }
+
+            videoList.innerHTML = '';
+            const currentPageVideos = getCurrentPageVideos();
+
+            currentPageVideos.forEach((video, pageIndex) => {
+                const globalIndex = (currentPage - 1) * videosPerPage + pageIndex;
+                const isCut = video.score > currentThreshold;
+                
+                const videoItem = document.createElement('div');
+                videoItem.className = `video-item ${isCut ? 'cut' : ''}`;
+                
+                videoItem.innerHTML = `
+                    <div class="video-rank">#${globalIndex + 1}</div>
+                    <div class="video-name ${isCut ? 'cut' : ''}" title="${video.name}">
+                        <a href="${video.url}" target="_blank" rel="noopener noreferrer">${video.name}</a>
+                        ${video.method ? `<small style="display: block; color: #6c757d; font-size: 0.8em;">Method: ${video.method}</small>` : ''}
+                        ${video.error ? `<small style="display: block; color: #dc3545; font-size: 0.8em;">Error: ${video.error}</small>` : ''}
+                    </div>
+                    <div class="video-score">${video.score.toFixed(4)}</div>
+                    <div class="cut-indicator ${isCut ? 'cut-true' : 'cut-false'}">
+                        ${isCut ? 'CUT' : 'KEEP'}
+                    </div>
+                `;
+                
+                videoList.appendChild(videoItem);
+            });
+        }
+
+        function updateVisualization() {
+            sortVideos();
+            updateStats();
+            updatePagination();
+            
+            if (currentView === 'grid') {
+                renderGridView();
+            } else {
+                renderListView();
+            }
+        }
+
+        // Threshold input event listener
+        document.getElementById('threshold').addEventListener('input', function(e) {
+            const value = parseFloat(e.target.value);
+            if (!isNaN(value) && value >= 0 && value <= 1) {
+                currentThreshold = value;
+                currentPage = 1; // Reset to first page
+                updateVisualization();
+            }
+        });
+
+        // Initialize
+        function initialize() {
+            selectionData = getSelectionData();
+            if (selectionData) {
+                document.getElementById('currentDatasetInfo').textContent = 
+                    `Dataset: ${selectionData.dataset} | Label: ${selectionData.label} | Model: ${selectionData.model} | Segment: ${selectionData.segment} | Max Cases: ${selectionData.maxCases}`;
+                
+                loadJsonData();
+            }
+        }
+
+        // Initialize after page load
+        document.addEventListener('DOMContentLoaded', initialize);
+    </script>
+</body>
+</html>
