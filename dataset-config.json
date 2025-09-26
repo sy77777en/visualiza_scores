@@ -3,9 +3,305 @@
     "camerapizza": {
       "display_name": "Camera Pizza",
       "labels": {
-        "cut": {
-          "display_name": "Cut Detection",
+        "shot_transition": {
+          "display_name": "Shot Transition",
           "models": ["TransNetV2"]
+        },
+        "no_lens_distortion": {
+          "display_name": "No Lens Distortion",
+          "models": []
+        },
+        "with_lens_distortion": {
+          "display_name": "With Lens Distortion",
+          "models": []
+        },
+        "fisheye_distortion": {
+          "display_name": "Fisheye Distortion",
+          "models": []
+        },
+        "barrel_distortion": {
+          "display_name": "Barrel Distortion",
+          "models": []
+        },
+        "broadcast_pov": {
+          "display_name": "Broadcast Pov",
+          "models": []
+        },
+        "dashcam_pov": {
+          "display_name": "Dashcam Pov",
+          "models": []
+        },
+        "drone_pov": {
+          "display_name": "Drone Pov",
+          "models": []
+        },
+        "first_person_pov": {
+          "display_name": "First Person Pov",
+          "models": []
+        },
+        "locked_on_pov": {
+          "display_name": "Locked On Pov",
+          "models": []
+        },
+        "overhead_pov": {
+          "display_name": "Overhead Pov",
+          "models": []
+        },
+        "screen_recording_pov": {
+          "display_name": "Screen Recording Pov",
+          "models": []
+        },
+        "selfie_pov": {
+          "display_name": "Selfie Pov",
+          "models": []
+        },
+        "third_person_full_body_game_pov": {
+          "display_name": "Third Person Full Body Game Pov",
+          "models": []
+        },
+        "third_person_isometric_game_pov": {
+          "display_name": "Third Person Isometric Game Pov",
+          "models": []
+        },
+        "third_person_over_hip_pov": {
+          "display_name": "Third Person Over Hip Pov",
+          "models": []
+        },
+        "third_person_over_shoulder_pov": {
+          "display_name": "Third Person Over Shoulder Pov",
+          "models": []
+        },
+        "third_person_side_view_game_pov": {
+          "display_name": "Third Person Side View Game Pov",
+          "models": []
+        },
+        "third_person_top_down_game_pov": {
+          "display_name": "Third Person Top Down Game Pov",
+          "models": []
+        },
+        "objective_pov": {
+          "display_name": "Objective Pov",
+          "models": []
+        },
+        "true_pov_attribute": {
+          "display_name": "True Pov Attribute",
+          "models": []
+        },
+        "is_framing_subject": {
+          "display_name": "Is Framing Subject",
+          "models": []
+        },
+        "has_subject_change": {
+          "display_name": "Has Subject Change",
+          "models": []
+        },
+        "has_single_dominant_subject": {
+          "display_name": "Has Single Dominant Subject",
+          "models": []
+        },
+        "has_many_subjects": {
+          "display_name": "Has Many Subjects",
+          "models": []
+        },
+        "is_human_shot": {
+          "display_name": "Is Human Shot",
+          "models": []
+        },
+        "is_non_human_shot": {
+          "display_name": "Is Non Human Shot",
+          "models": []
+        },
+        "is_just_human_shot": {
+          "display_name": "Is Just Human Shot",
+          "models": []
+        },
+        "is_just_non_human_shot": {
+          "display_name": "Is Just Non Human Shot",
+          "models": []
+        },
+        "is_just_change_of_subject_shot": {
+          "display_name": "Is Just Change Of Subject Shot",
+          "models": []
+        },
+        "is_just_scenery_shot": {
+          "display_name": "Is Just Scenery Shot",
+          "models": []
+        },
+        "is_just_clear_subject_dynamic_size_shot": {
+          "display_name": "Is Just Clear Subject Dynamic Size Shot",
+          "models": []
+        },
+        "is_just_different_subject_in_focus_shot": {
+          "display_name": "Is Just Different Subject In Focus Shot",
+          "models": []
+        },
+        "is_just_clear_subject_atypical_shot": {
+          "display_name": "Is Just Clear Subject Atypical Shot",
+          "models": []
+        },
+        "is_just_many_subject_one_focus_shot": {
+          "display_name": "Is Just Many Subject One Focus Shot",
+          "models": []
+        },
+        "is_just_many_subject_no_focus_shot": {
+          "display_name": "Is Just Many Subject No Focus Shot",
+          "models": []
+        },
+        "is_just_subject_scene_mismatch_shot": {
+          "display_name": "Is Just Subject Scene Mismatch Shot",
+          "models": []
+        },
+        "is_just_back_and_forth_change_shot": {
+          "display_name": "Is Just Back And Forth Change Shot",
+          "models": []
+        },
+        "is_shot_size_applicable": {
+          "display_name": "Is Shot Size Applicable",
+          "models": []
+        },
+        "subject_revealing": {
+          "display_name": "Subject Revealing",
+          "models": []
+        },
+        "subject_disappearing": {
+          "display_name": "Subject Disappearing",
+          "models": []
+        },
+        "subject_switching": {
+          "display_name": "Subject Switching",
+          "models": []
+        },
+        "shot_size_change": {
+          "display_name": "Shot Size Change",
+          "models": []
+        },
+        "shot_size_change_from_large_to_small": {
+          "display_name": "Shot Size Change From Large To Small",
+          "models": []
+        },
+        "shot_size_change_from_small_to_large": {
+          "display_name": "Shot Size Change From Small To Large",
+          "models": []
+        },
+        "is_subject_height_applicable": {
+          "display_name": "Is Subject Height Applicable",
+          "models": []
+        },
+        "height_wrt_subject_change_from_high_to_low": {
+          "display_name": "Height Wrt Subject Change From High To Low",
+          "models": []
+        },
+        "height_wrt_subject_change_from_low_to_high": {
+          "display_name": "Height Wrt Subject Change From Low To High",
+          "models": []
+        },
+        "height_wrt_subject_change": {
+          "display_name": "Height Wrt Subject Change",
+          "models": []
+        },
+        "is_height_wrt_ground_applicable": {
+          "display_name": "Is Height Wrt Ground Applicable",
+          "models": []
+        },
+        "height_wrt_ground_change_from_high_to_low": {
+          "display_name": "Height Wrt Ground Change From High To Low",
+          "models": []
+        },
+        "height_wrt_ground_change_from_low_to_high": {
+          "display_name": "Height Wrt Ground Change From Low To High",
+          "models": []
+        },
+        "above_water_to_underwater": {
+          "display_name": "Above Water To Underwater",
+          "models": []
+        },
+        "underwater_to_above_water": {
+          "display_name": "Underwater To Above Water",
+          "models": []
+        },
+        "height_wrt_ground_change": {
+          "display_name": "Height Wrt Ground Change",
+          "models": []
+        },
+        "is_camera_angle_applicable": {
+          "display_name": "Is Camera Angle Applicable",
+          "models": []
+        },
+        "is_dutch_angle": {
+          "display_name": "Is Dutch Angle",
+          "models": []
+        },
+        "is_dutch_angle_varying": {
+          "display_name": "Is Dutch Angle Varying",
+          "models": []
+        },
+        "is_dutch_angle_fixed": {
+          "display_name": "Is Dutch Angle Fixed",
+          "models": []
+        },
+        "camera_angle_change_from_high_to_low": {
+          "display_name": "Camera Angle Change From High To Low",
+          "models": []
+        },
+        "camera_angle_change_from_low_to_high": {
+          "display_name": "Camera Angle Change From Low To High",
+          "models": []
+        },
+        "camera_angle_change": {
+          "display_name": "Camera Angle Change",
+          "models": []
+        },
+        "is_focus_applicable": {
+          "display_name": "Is Focus Applicable",
+          "models": []
+        },
+        "is_deep_focus": {
+          "display_name": "Is Deep Focus",
+          "models": []
+        },
+        "is_shallow_focus": {
+          "display_name": "Is Shallow Focus",
+          "models": []
+        },
+        "is_ultra_shallow_focus": {
+          "display_name": "Is Ultra Shallow Focus",
+          "models": []
+        },
+        "focus_change_from_near_to_far": {
+          "display_name": "Focus Change From Near To Far",
+          "models": []
+        },
+        "focus_change_from_far_to_near": {
+          "display_name": "Focus Change From Far To Near",
+          "models": []
+        },
+        "is_rack_pull_focus": {
+          "display_name": "Is Rack Pull Focus",
+          "models": []
+        },
+        "is_focus_tracking": {
+          "display_name": "Is Focus Tracking",
+          "models": []
+        },
+        "focus_change": {
+          "display_name": "Focus Change",
+          "models": []
+        },
+        "is_rack_focus": {
+          "display_name": "Is Rack Focus",
+          "models": []
+        },
+        "is_pull_focus": {
+          "display_name": "Is Pull Focus",
+          "models": []
+        },
+        "focus_change_from_in_to_out_of_focus": {
+          "display_name": "Focus Change From In To Out Of Focus",
+          "models": []
+        },
+        "focus_change_from_out_to_in_focus": {
+          "display_name": "Focus Change From Out To In Focus",
+          "models": []
         }
       }
     }
