@@ -457,6 +457,12 @@
         const datasetPath = `${baseUrl}/dataset`;
 
         let datasetConfig = null;
+        // 全局状态管理
+        let currentSelection = {
+            dataset: '',
+            label: '',
+            model: ''
+        };
 
         // 显示消息的函数
         function showMessage(message, type = 'info') {
@@ -599,6 +605,15 @@
             return categories;
         }
 
+        // 检查是否可以启用加载按钮
+        function checkLoadButton() {
+            const isComplete = currentSelection.dataset && currentSelection.label && currentSelection.model;
+            const loadBtn = document.getElementById('loadDataBtn');
+            loadBtn.disabled = !isComplete;
+            
+            console.log('当前选择状态:', currentSelection, '按钮启用:', isComplete);
+        }
+
         // 创建搜索功能
         function createLabelSearch(labels, datasetInfo) {
             const searchContainer = document.getElementById('labelSearchContainer');
@@ -608,7 +623,6 @@
             const counter = document.getElementById('labelCounter');
             
             let currentLabels = [...labels];
-            let selectedLabel = '';
             
             // 更新计数器
             function updateCounter(filteredCount = null) {
@@ -648,15 +662,15 @@
                         `;
                         
                         option.addEventListener('click', () => {
-                            selectedLabel = labelKey;
+                            currentSelection.label = labelKey;
                             searchInput.value = datasetInfo.labels[labelKey].display_name;
                             dropdown.classList.remove('active');
                             
                             // 更新模型选择器
-                            const dataset = document.getElementById('datasetSelector').value;
-                            updateModels(dataset, labelKey);
+                            updateModels(currentSelection.dataset, labelKey);
                             
                             clearBtn.style.display = 'block';
+                            checkLoadButton(); // 检查按钮状态
                         });
                         
                         dropdown.appendChild(option);
@@ -692,8 +706,9 @@
                     dropdown.classList.add('active');
                     clearBtn.style.display = 'block';
                 } else {
-                    selectedLabel = '';
+                    currentSelection.label = '';
                     clearBtn.style.display = 'none';
+                    checkLoadButton();
                 }
             });
             
@@ -706,7 +721,8 @@
             
             clearBtn.addEventListener('click', () => {
                 searchInput.value = '';
-                selectedLabel = '';
+                currentSelection.label = '';
+                currentSelection.model = '';
                 dropdown.classList.remove('active');
                 clearBtn.style.display = 'none';
                 renderOptions(labels);
@@ -715,7 +731,7 @@
                 const modelSelector = document.getElementById('modelSelector');
                 modelSelector.innerHTML = '<option value="">请先选择标签...</option>';
                 modelSelector.className = 'model-selector selector-disabled';
-                document.getElementById('loadDataBtn').disabled = true;
+                checkLoadButton();
             });
             
             // 点击外部关闭下拉
@@ -727,9 +743,6 @@
             
             // 初始化显示所有选项
             renderOptions(labels);
-            
-            // 返回获取当前选中标签的函数
-            return () => selectedLabel;
         }
 
         // 更新标签列表函数
@@ -738,6 +751,10 @@
             const labelSearchContainer = document.getElementById('labelSearchContainer');
             const modelSelector = document.getElementById('modelSelector');
             
+            // 重置选择状态
+            currentSelection.label = '';
+            currentSelection.model = '';
+            
             if (!dataset || !datasetConfig) {
                 labelSelector.style.display = 'block';
                 labelSearchContainer.style.display = 'none';
@@ -745,7 +762,7 @@
                 labelSelector.className = 'label-selector selector-disabled';
                 modelSelector.innerHTML = '<option value="">请先选择标签...</option>';
                 modelSelector.className = 'model-selector selector-disabled';
-                document.getElementById('loadDataBtn').disabled = true;
+                checkLoadButton();
                 return;
             }
 
@@ -773,11 +790,12 @@
                 labelSelector.style.display = 'none';
                 labelSearchContainer.style.display = 'block';
                 
-                // 创建搜索功能
-                const getCurrentLabel = createLabelSearch(labels, datasetInfo);
+                // 清空搜索框
+                document.getElementById('labelSearch').value = '';
+                document.getElementById('clearLabelSearch').style.display = 'none';
                 
-                // 保存获取当前选中标签的函数
-                window.getCurrentSelectedLabel = getCurrentLabel;
+                // 创建搜索功能
+                createLabelSearch(labels, datasetInfo);
                 
             } else {
                 // 标签数量少时使用传统下拉框
@@ -800,17 +818,20 @@
             // 重置模型选择器
             modelSelector.innerHTML = '<option value="">请先选择标签...</option>';
             modelSelector.className = 'model-selector selector-disabled';
-            document.getElementById('loadDataBtn').disabled = true;
+            checkLoadButton();
         }
 
         // 更新模型列表
         function updateModels(dataset, label) {
             const modelSelector = document.getElementById('modelSelector');
             
+            // 重置模型选择状态
+            currentSelection.model = '';
+            
             if (!dataset || !label || !datasetConfig) {
                 modelSelector.innerHTML = '<option value="">请先选择标签...</option>';
                 modelSelector.className = 'model-selector selector-disabled';
-                document.getElementById('loadDataBtn').disabled = true;
+                checkLoadButton();
                 return;
             }
 
@@ -831,107 +852,4 @@
             }
             
             modelSelector.className = 'model-selector';
-            modelSelector.innerHTML = '<option value="">请选择模型...</option>';
-            
-            models.forEach(model => {
-                const option = document.createElement('option');
-                option.value = model;
-                option.textContent = model;
-                modelSelector.appendChild(option);
-            });
-
-            console.log(`标签 ${label} 的模型:`, models);
-            document.getElementById('loadDataBtn').disabled = true;
-        }
-
-        // 检查是否可以启用加载按钮
-        function checkLoadButton() {
-            const dataset = document.getElementById('datasetSelector').value;
-            const label = document.getElementById('labelSelector').value;
-            const model = document.getElementById('modelSelector').value;
-            
-            document.getElementById('loadDataBtn').disabled = !(dataset && label && model);
-        }
-
-        // 保存选择到localStorage并跳转
-        function loadData() {
-            const dataset = document.getElementById('datasetSelector').value;
-            
-            // 获取标签值 - 根据当前使用的界面类型
-            let label = '';
-            const labelSearchContainer = document.getElementById('labelSearchContainer');
-            if (labelSearchContainer.style.display === 'none') {
-                // 使用传统下拉框
-                label = document.getElementById('labelSelector').value;
-            } else {
-                // 使用搜索界面
-                label = window.getCurrentSelectedLabel ? window.getCurrentSelectedLabel() : '';
-            }
-            
-            const model = document.getElementById('modelSelector').value;
-            const segment = document.getElementById('segmentInput').value;
-            const maxCases = document.getElementById('maxCasesInput').value;
-
-            if (!dataset || !label || !model) {
-                showMessage('请完成所有选择项', 'error');
-                return;
-            }
-
-            // 验证参数
-            const segmentValue = parseFloat(segment);
-            const maxCasesValue = parseInt(maxCases);
-            
-            if (isNaN(segmentValue) || segmentValue <= 0 || segmentValue > 1) {
-                showMessage('分割阈值必须在 0 到 1 之间', 'error');
-                return;
-            }
-            
-            if (isNaN(maxCasesValue) || maxCasesValue <= 0) {
-                showMessage('最大案例数必须大于 0', 'error');
-                return;
-            }
-
-            // 保存选择到localStorage
-            const selectionData = {
-                dataset,
-                label,
-                model,
-                segment: segmentValue,
-                maxCases: maxCasesValue,
-                timestamp: Date.now()
-            };
-
-            localStorage.setItem('videoAnalysisSelection', JSON.stringify(selectionData));
-            
-            showMessage('正在跳转到可视化页面...', 'loading');
-            
-            // 跳转到可视化页面
-            setTimeout(() => {
-                window.location.href = 'visualization.html';
-            }, 1000);
-        }
-
-        // 事件监听器
-        document.getElementById('datasetSelector').addEventListener('change', function(e) {
-            updateLabels(e.target.value);
-        });
-
-        document.getElementById('labelSelector').addEventListener('change', function(e) {
-            const dataset = document.getElementById('datasetSelector').value;
-            updateModels(dataset, e.target.value);
-        });
-
-        document.getElementById('modelSelector').addEventListener('change', checkLoadButton);
-
-        document.getElementById('loadDataBtn').addEventListener('click', loadData);
-
-        // 页面加载完成后初始化
-        document.addEventListener('DOMContentLoaded', async function() {
-            const success = await loadDatasetConfig();
-            if (success) {
-                initializeDatasets();
-            }
-        });
-    </script>
-</body>
-</html>
+            modelSelector.innerHTML = '<option value
