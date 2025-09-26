@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>视频分数可视化 - 数据集选择</title>
+    <title>Video Score Visualization - Dataset Selection</title>
     <style>
         * {
             margin: 0;
@@ -92,7 +92,7 @@
             font-size: 1.2em;
         }
 
-        .dataset-selector, .label-selector, .model-selector {
+        .dataset-selector, .model-selector {
             width: 100%;
             padding: 15px 20px;
             border: 2px solid #e9ecef;
@@ -103,7 +103,7 @@
             margin-bottom: 15px;
         }
 
-        .dataset-selector:focus, .label-selector:focus, .model-selector:focus {
+        .dataset-selector:focus, .model-selector:focus {
             outline: none;
             border-color: #4facfe;
             box-shadow: 0 0 0 4px rgba(79, 172, 254, 0.1);
@@ -116,15 +116,15 @@
             cursor: not-allowed;
         }
 
-        /* 搜索框样式 */
-        .search-container {
+        /* Label Search Component */
+        .label-search-container {
             position: relative;
             margin-bottom: 15px;
         }
 
-        .search-input {
+        .label-search-input {
             width: 100%;
-            padding: 12px 40px 12px 20px;
+            padding: 15px 45px 15px 20px;
             border: 2px solid #e9ecef;
             border-radius: 10px;
             font-size: 16px;
@@ -132,18 +132,25 @@
             transition: all 0.3s ease;
         }
 
-        .search-input:focus {
+        .label-search-input:focus {
             outline: none;
             border-color: #4facfe;
             box-shadow: 0 0 0 4px rgba(79, 172, 254, 0.1);
+            transform: translateY(-2px);
+        }
+
+        .label-search-input.has-value {
+            border-color: #28a745;
         }
 
         .search-icon {
             position: absolute;
-            right: 15px;
+            right: 45px;
             top: 50%;
             transform: translateY(-50%);
             color: #6c757d;
+            font-size: 18px;
+            pointer-events: none;
         }
 
         .clear-search {
@@ -155,20 +162,20 @@
             border: none;
             color: #6c757d;
             cursor: pointer;
-            font-size: 18px;
+            font-size: 20px;
+            padding: 5px;
+            border-radius: 50%;
+            transition: all 0.2s ease;
             display: none;
         }
 
         .clear-search:hover {
+            background-color: #f8f9fa;
             color: #dc3545;
         }
 
-        /* 自定义下拉框样式 */
-        .custom-select {
-            position: relative;
-        }
-
-        .select-dropdown {
+        /* Dropdown Styles */
+        .label-dropdown {
             position: absolute;
             top: 100%;
             left: 0;
@@ -177,62 +184,104 @@
             border: 2px solid #4facfe;
             border-top: none;
             border-radius: 0 0 10px 10px;
-            max-height: 300px;
+            max-height: 350px;
             overflow-y: auto;
             z-index: 1000;
             display: none;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
         }
 
-        .select-dropdown.active {
+        .label-dropdown.active {
             display: block;
         }
 
-        .select-option {
-            padding: 12px 20px;
+        .label-option {
+            padding: 15px 20px;
             cursor: pointer;
             transition: background-color 0.2s ease;
             border-bottom: 1px solid #f1f3f4;
         }
 
-        .select-option:hover {
+        .label-option:hover {
             background-color: #f8f9fa;
         }
 
-        .select-option.selected {
+        .label-option.selected {
             background-color: #4facfe;
             color: white;
         }
 
-        .select-option.highlighted {
+        .label-option.highlighted {
             background-color: #e3f2fd;
         }
 
+        .label-option-name {
+            font-weight: 600;
+            font-size: 16px;
+            margin-bottom: 5px;
+        }
+
+        .label-option-key {
+            font-size: 13px;
+            color: #6c757d;
+            font-family: monospace;
+        }
+
+        .label-option.selected .label-option-key {
+            color: rgba(255, 255, 255, 0.8);
+        }
+
         .no-results {
-            padding: 20px;
+            padding: 30px 20px;
             text-align: center;
             color: #6c757d;
             font-style: italic;
         }
 
-        /* 标签计数器 */
+        /* Category Group Styles */
+        .label-category {
+            font-weight: bold;
+            background: linear-gradient(135deg, #f1f3f4 0%, #e9ecef 100%);
+            color: #495057;
+            border-bottom: 2px solid #dee2e6;
+            padding: 12px 20px;
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .label-category:hover {
+            background: linear-gradient(135deg, #f1f3f4 0%, #e9ecef 100%);
+            cursor: default;
+        }
+
+        /* Label Counter */
         .label-counter {
             font-size: 0.9em;
             color: #6c757d;
             margin-top: 10px;
             text-align: center;
+            padding: 8px;
+            background: #f8f9fa;
+            border-radius: 5px;
         }
 
-        /* 分组标签样式 */
-        .label-group {
-            font-weight: bold;
-            background-color: #f1f3f4;
-            color: #495057;
-            border-bottom: 2px solid #dee2e6;
+        /* Selection Status Indicator */
+        .selection-status {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 12px;
+            background: #d4edda;
+            color: #155724;
+            border-radius: 20px;
+            font-size: 0.85em;
+            margin-top: 10px;
         }
 
-        .label-group:hover {
-            background-color: #f1f3f4;
-            cursor: default;
+        .selection-status.incomplete {
+            background: #f8d7da;
+            color: #721c24;
         }
 
         .parameters-section {
@@ -280,7 +329,7 @@
             margin-left: 10px;
         }
 
-        .load-data-btn {
+        .start-analysis-btn {
             background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
             color: white;
             border: none;
@@ -295,12 +344,12 @@
             min-width: 200px;
         }
 
-        .load-data-btn:hover:not(:disabled) {
+        .start-analysis-btn:hover:not(:disabled) {
             transform: translateY(-3px);
             box-shadow: 0 10px 30px rgba(79, 172, 254, 0.4);
         }
 
-        .load-data-btn:disabled {
+        .start-analysis-btn:disabled {
             background: linear-gradient(135deg, #6c757d 0%, #adb5bd 100%);
             cursor: not-allowed;
             transform: none;
@@ -352,6 +401,25 @@
             line-height: 1.6;
         }
 
+        /* Scrollbar Styling */
+        .label-dropdown::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .label-dropdown::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 3px;
+        }
+
+        .label-dropdown::-webkit-scrollbar-thumb {
+            background: #c1c1c1;
+            border-radius: 3px;
+        }
+
+        .label-dropdown::-webkit-scrollbar-thumb:hover {
+            background: #a8a8a8;
+        }
+
         @media (max-width: 768px) {
             .selection-grid {
                 grid-template-columns: 1fr;
@@ -371,78 +439,86 @@
             .selection-content {
                 padding: 30px;
             }
+
+            .search-icon {
+                right: 45px;
+            }
         }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="header">
-            <h1>视频分数可视化工具</h1>
-            <p>选择数据集、标签和模型进行视频分析</p>
+            <h1>Video Analysis Tool</h1>
+            <p>Select dataset, labels, and models for video analysis</p>
         </div>
 
         <div class="selection-content">
             <div class="info-panel">
-                <h3>📋 使用说明</h3>
-                <p>请依次选择数据集、标签和模型，然后设置分析参数。系统将自动加载对应的JSON数据文件进行可视化分析。</p>
+                <h3>📋 Instructions</h3>
+                <p>Please select a dataset, label, and model in sequence, then configure analysis parameters. The system will automatically load the corresponding JSON data files for visualization analysis.</p>
             </div>
 
-            <h2 class="section-title">数据选择</h2>
+            <h2 class="section-title">Data Selection</h2>
             
             <div class="selection-grid">
                 <div class="selection-card">
                     <h3 class="card-title">
                         <span class="card-icon">📁</span>
-                        数据集选择
+                        Dataset & Label Selection
                     </h3>
                     <select id="datasetSelector" class="dataset-selector">
-                        <option value="">请选择数据集...</option>
+                        <option value="">Select dataset...</option>
                     </select>
                     
-                    <select id="labelSelector" class="label-selector selector-disabled">
-                        <option value="">请先选择数据集...</option>
-                    </select>
-                    
-                    <div class="search-container" id="labelSearchContainer" style="display: none;">
-                        <input type="text" id="labelSearch" class="search-input" placeholder="搜索标签...">
+                    <div class="label-search-container" id="labelSearchContainer" style="display: none;">
+                        <input 
+                            type="text" 
+                            id="labelSearchInput" 
+                            class="label-search-input" 
+                            placeholder="Search labels... (e.g., 'subject', 'angle', 'pov')"
+                            autocomplete="off"
+                        >
                         <span class="search-icon">🔍</span>
-                        <button class="clear-search" id="clearLabelSearch">✕</button>
-                        <div class="select-dropdown" id="labelDropdown"></div>
+                        <button class="clear-search" id="clearLabelSearch" title="Clear selection">✕</button>
+                        <div class="label-dropdown" id="labelDropdown"></div>
                     </div>
                     
-                    <div class="label-counter" id="labelCounter"></div>
+                    <div class="label-counter" id="labelCounter" style="display: none;"></div>
+                    <div class="selection-status incomplete" id="labelStatus">No label selected</div>
                 </div>
 
                 <div class="selection-card">
                     <h3 class="card-title">
                         <span class="card-icon">🤖</span>
-                        模型选择
+                        Model Selection
                     </h3>
                     <select id="modelSelector" class="model-selector selector-disabled">
-                        <option value="">请先选择标签...</option>
+                        <option value="">Select label first...</option>
                     </select>
+                    <div class="selection-status incomplete" id="modelStatus">No model selected</div>
                 </div>
             </div>
 
             <div class="parameters-section">
                 <h3 class="card-title">
                     <span class="card-icon">⚙️</span>
-                    分析参数
+                    Analysis Parameters
                 </h3>
                 <div class="parameter-group">
-                    <label for="segmentInput">分割阈值 (Segment):</label>
-                    <input type="number" id="segmentInput" class="parameter-input" value="0.1" step="0.01" min="0" max="1" placeholder="例如: 0.1">
-                    <span class="parameter-help">用于分割视频段的阈值</span>
+                    <label for="segmentInput">Segment Threshold:</label>
+                    <input type="number" id="segmentInput" class="parameter-input" value="0.1" step="0.01" min="0" max="1" placeholder="e.g., 0.1">
+                    <span class="parameter-help">Threshold for splitting video segments</span>
                 </div>
                 <div class="parameter-group">
-                    <label for="maxCasesInput">每段最大案例数:</label>
-                    <input type="number" id="maxCasesInput" class="parameter-input" value="20" min="1" max="100" placeholder="例如: 20">
-                    <span class="parameter-help">限制每个分析段的最大视频数量</span>
+                    <label for="maxCasesInput">Max Cases per Segment:</label>
+                    <input type="number" id="maxCasesInput" class="parameter-input" value="20" min="1" max="100" placeholder="e.g., 20">
+                    <span class="parameter-help">Limit the maximum number of videos per analysis segment</span>
                 </div>
             </div>
 
-            <button id="loadDataBtn" class="load-data-btn" disabled>
-                🚀 开始分析
+            <button id="startAnalysisBtn" class="start-analysis-btn" disabled>
+                🚀 Start Analysis
             </button>
             
             <div class="error-message message" id="errorMessage"></div>
@@ -452,25 +528,28 @@
     </div>
 
     <script>
-        // 获取基础URL
+        // Get base URL
         const baseUrl = window.location.href.split('/').slice(0, -1).join('/');
         const datasetPath = `${baseUrl}/dataset`;
 
         let datasetConfig = null;
-        // 全局状态管理
+        
+        // Global state management
         let currentSelection = {
             dataset: '',
             label: '',
             model: ''
         };
 
-        // 显示消息的函数
+        let labelSearchInstance = null;
+
+        // Show message function
         function showMessage(message, type = 'info') {
             const errorDiv = document.getElementById('errorMessage');
             const successDiv = document.getElementById('successMessage');
             const loadingDiv = document.getElementById('loadingMessage');
             
-            // 隐藏所有消息
+            // Hide all messages
             errorDiv.style.display = 'none';
             successDiv.style.display = 'none';
             loadingDiv.style.display = 'none';
@@ -494,36 +573,36 @@
             }
         }
 
-        // 加载数据集配置文件
+        // Load dataset configuration file
         async function loadDatasetConfig() {
             try {
-                showMessage('正在加载数据集配置...', 'loading');
+                showMessage('Loading dataset configuration...', 'loading');
                 
                 const response = await fetch(`${baseUrl}/dataset-config.json`);
                 if (!response.ok) {
-                    throw new Error(`配置文件加载失败: HTTP ${response.status}`);
+                    throw new Error(`Configuration file loading failed: HTTP ${response.status}`);
                 }
                 
                 datasetConfig = await response.json();
                 
                 if (!datasetConfig || !datasetConfig.datasets) {
-                    throw new Error('配置文件格式错误');
+                    throw new Error('Configuration file format error');
                 }
                 
-                showMessage('', 'loading'); // 隐藏loading消息
-                console.log('数据集配置加载成功:', datasetConfig);
+                showMessage('', 'loading'); // Hide loading message
+                console.log('Dataset configuration loaded successfully:', datasetConfig);
                 
                 return true;
             } catch (error) {
-                showMessage('配置文件加载失败。请确保 dataset-config.json 文件存在且格式正确: ' + error.message, 'error');
+                showMessage('Configuration file loading failed. Please ensure dataset-config.json exists and is properly formatted: ' + error.message, 'error');
                 
-                // 显示帮助信息
+                // Show help information
                 const helpMessage = document.createElement('div');
                 helpMessage.className = 'info-panel';
                 helpMessage.innerHTML = `
-                    <h3>⚠️ 配置文件缺失</h3>
-                    <p>请在网站根目录创建 <code>dataset-config.json</code> 文件来定义你的数据结构。</p>
-                    <p>文件格式示例：</p>
+                    <h3>⚠️ Configuration File Missing</h3>
+                    <p>Please create a <code>dataset-config.json</code> file in the website root directory to define your data structure.</p>
+                    <p>File format example:</p>
                     <pre style="background: #f8f9fa; padding: 10px; border-radius: 5px; font-size: 0.9em; overflow-x: auto;">{
   "datasets": {
     "your_dataset": {
@@ -544,18 +623,18 @@
             }
         }
 
-        // 初始化数据集列表
+        // Initialize dataset list
         function initializeDatasets() {
             if (!datasetConfig) return;
             
             const datasetSelector = document.getElementById('datasetSelector');
-            datasetSelector.innerHTML = '<option value="">请选择数据集...</option>';
+            datasetSelector.innerHTML = '<option value="">Select dataset...</option>';
             
             const datasets = Object.keys(datasetConfig.datasets);
             
             if (datasets.length === 0) {
-                datasetSelector.innerHTML = '<option value="">配置文件中未定义任何数据集</option>';
-                showMessage('配置文件中未找到任何数据集定义', 'error');
+                datasetSelector.innerHTML = '<option value="">No datasets defined in configuration file</option>';
+                showMessage('No dataset definitions found in configuration file', 'error');
                 return;
             }
             
@@ -567,33 +646,39 @@
                 datasetSelector.appendChild(option);
             });
             
-            console.log('数据集初始化完成:', datasets);
+            console.log('Dataset initialization completed:', datasets);
         }
 
-        // 分类标签的函数
+        // Categorize labels function
         function categorizeLabels(labels) {
             const categories = {};
             
             labels.forEach(labelKey => {
-                // 根据标签名称进行分类
-                let category = '其他';
+                let category = 'Others';
                 
+                // Categorize based on label name
                 if (labelKey.includes('pov') || labelKey.includes('_pov')) {
-                    category = '视角类型 (POV)';
+                    category = 'Point of View (POV)';
                 } else if (labelKey.includes('distortion')) {
-                    category = '畸变类型';
+                    category = 'Distortion Types';
                 } else if (labelKey.includes('subject')) {
-                    category = '主体相关';
+                    category = 'Subject Related';
                 } else if (labelKey.includes('focus')) {
-                    category = '焦点相关';
+                    category = 'Focus Related';
                 } else if (labelKey.includes('angle') || labelKey.includes('height')) {
-                    category = '角度和高度';
+                    category = 'Angles & Heights';
                 } else if (labelKey.includes('shot') && !labelKey.includes('subject')) {
-                    category = '镜头类型';
+                    category = 'Shot Types';
                 } else if (labelKey.includes('framing') || labelKey.includes('size')) {
-                    category = '构图相关';
+                    category = 'Framing Related';
                 } else if (labelKey.includes('transition')) {
-                    category = '过渡效果';
+                    category = 'Transitions';
+                } else if (labelKey.includes('movement') || labelKey.includes('motion')) {
+                    category = 'Movement & Motion';
+                } else if (labelKey.includes('lighting') || labelKey.includes('light')) {
+                    category = 'Lighting';
+                } else if (labelKey.includes('composition')) {
+                    category = 'Composition';
                 }
                 
                 if (!categories[category]) {
@@ -605,240 +690,362 @@
             return categories;
         }
 
-        // 检查是否可以启用加载按钮
-        function checkLoadButton() {
-            const isComplete = currentSelection.dataset && currentSelection.label && currentSelection.model;
-            const loadBtn = document.getElementById('loadDataBtn');
-            loadBtn.disabled = !isComplete;
-            
-            console.log('当前选择状态:', currentSelection, '按钮启用:', isComplete);
-        }
-
-        // 创建搜索功能
-        function createLabelSearch(labels, datasetInfo) {
-            const searchContainer = document.getElementById('labelSearchContainer');
-            const searchInput = document.getElementById('labelSearch');
-            const dropdown = document.getElementById('labelDropdown');
-            const clearBtn = document.getElementById('clearLabelSearch');
-            const counter = document.getElementById('labelCounter');
-            
-            let currentLabels = [...labels];
-            
-            // 更新计数器
-            function updateCounter(filteredCount = null) {
-                const total = labels.length;
-                const showing = filteredCount !== null ? filteredCount : total;
-                counter.textContent = `显示 ${showing} / ${total} 个标签`;
+        // Label Search Component Class
+        class LabelSearchComponent {
+            constructor(labels, datasetInfo, onSelect) {
+                this.labels = labels;
+                this.datasetInfo = datasetInfo;
+                this.onSelect = onSelect;
+                this.selectedLabel = '';
+                this.filteredLabels = [...labels];
+                
+                this.searchInput = document.getElementById('labelSearchInput');
+                this.dropdown = document.getElementById('labelDropdown');
+                this.clearBtn = document.getElementById('clearLabelSearch');
+                this.counter = document.getElementById('labelCounter');
+                
+                this.init();
             }
             
-            // 渲染下拉选项
-            function renderOptions(filteredLabels) {
-                dropdown.innerHTML = '';
-                
-                if (filteredLabels.length === 0) {
-                    dropdown.innerHTML = '<div class="no-results">未找到匹配的标签</div>';
-                    updateCounter(0);
-                    return;
-                }
-                
-                // 分类显示
-                const categories = categorizeLabels(filteredLabels);
-                
-                Object.keys(categories).sort().forEach(categoryName => {
-                    // 添加分类标题
-                    const categoryDiv = document.createElement('div');
-                    categoryDiv.className = 'select-option label-group';
-                    categoryDiv.textContent = `${categoryName} (${categories[categoryName].length})`;
-                    dropdown.appendChild(categoryDiv);
-                    
-                    // 添加该分类下的标签
-                    categories[categoryName].sort().forEach(labelKey => {
-                        const option = document.createElement('div');
-                        option.className = 'select-option';
-                        option.dataset.value = labelKey;
-                        option.innerHTML = `
-                            <strong>${datasetInfo.labels[labelKey].display_name}</strong>
-                            <br><small style="color: #6c757d;">${labelKey}</small>
-                        `;
-                        
-                        option.addEventListener('click', () => {
-                            currentSelection.label = labelKey;
-                            searchInput.value = datasetInfo.labels[labelKey].display_name;
-                            dropdown.classList.remove('active');
-                            
-                            // 更新模型选择器
-                            updateModels(currentSelection.dataset, labelKey);
-                            
-                            clearBtn.style.display = 'block';
-                            checkLoadButton(); // 检查按钮状态
-                        });
-                        
-                        dropdown.appendChild(option);
-                    });
+            init() {
+                this.setupEventListeners();
+                this.renderOptions(this.labels);
+                this.updateCounter();
+            }
+            
+            setupEventListeners() {
+                // Search input events
+                this.searchInput.addEventListener('input', (e) => {
+                    this.handleSearch(e.target.value);
                 });
                 
-                updateCounter(filteredLabels.length);
+                this.searchInput.addEventListener('focus', () => {
+                    this.showDropdown();
+                });
+                
+                this.searchInput.addEventListener('keydown', (e) => {
+                    this.handleKeydown(e);
+                });
+                
+                // Clear button
+                this.clearBtn.addEventListener('click', () => {
+                    this.clearSelection();
+                });
+                
+                // Click outside to close
+                document.addEventListener('click', (e) => {
+                    if (!document.getElementById('labelSearchContainer').contains(e.target)) {
+                        this.hideDropdown();
+                    }
+                });
             }
             
-            // 搜索过滤
-            function filterLabels(query) {
-                if (!query) {
-                    return labels;
+            handleSearch(query) {
+                this.filteredLabels = this.filterLabels(query);
+                this.renderOptions(this.filteredLabels);
+                this.updateCounter();
+                
+                if (query.trim()) {
+                    this.showDropdown();
+                    this.clearBtn.style.display = 'block';
+                } else {
+                    if (!this.selectedLabel) {
+                        this.clearBtn.style.display = 'none';
+                    }
+                }
+            }
+            
+            handleKeydown(e) {
+                const options = this.dropdown.querySelectorAll('.label-option:not(.label-category)');
+                const highlighted = this.dropdown.querySelector('.label-option.highlighted');
+                let currentIndex = -1;
+                
+                if (highlighted) {
+                    currentIndex = Array.from(options).indexOf(highlighted);
                 }
                 
-                query = query.toLowerCase();
-                return labels.filter(labelKey => {
-                    const label = datasetInfo.labels[labelKey];
+                switch (e.key) {
+                    case 'ArrowDown':
+                        e.preventDefault();
+                        this.highlightOption(options, Math.min(currentIndex + 1, options.length - 1));
+                        break;
+                    case 'ArrowUp':
+                        e.preventDefault();
+                        this.highlightOption(options, Math.max(currentIndex - 1, 0));
+                        break;
+                    case 'Enter':
+                        e.preventDefault();
+                        if (highlighted) {
+                            this.selectLabel(highlighted.dataset.value);
+                        }
+                        break;
+                    case 'Escape':
+                        this.hideDropdown();
+                        this.searchInput.blur();
+                        break;
+                }
+            }
+            
+            highlightOption(options, index) {
+                // Remove previous highlight
+                options.forEach(opt => opt.classList.remove('highlighted'));
+                
+                // Add new highlight
+                if (options[index]) {
+                    options[index].classList.add('highlighted');
+                    options[index].scrollIntoView({ block: 'nearest' });
+                }
+            }
+            
+            filterLabels(query) {
+                if (!query.trim()) {
+                    return this.labels;
+                }
+                
+                const searchTerm = query.toLowerCase();
+                return this.labels.filter(labelKey => {
+                    const label = this.datasetInfo.labels[labelKey];
                     const displayName = (label.display_name || labelKey).toLowerCase();
                     const key = labelKey.toLowerCase();
                     
-                    return displayName.includes(query) || key.includes(query);
+                    return displayName.includes(searchTerm) || 
+                           key.includes(searchTerm) ||
+                           this.getKeywords(labelKey).some(keyword => keyword.includes(searchTerm));
                 });
             }
             
-            // 事件监听
-            searchInput.addEventListener('input', (e) => {
-                const query = e.target.value;
-                const filteredLabels = filterLabels(query);
-                renderOptions(filteredLabels);
+            getKeywords(labelKey) {
+                // Extract additional keywords for better search
+                const keywords = [];
+                const parts = labelKey.split('_');
+                keywords.push(...parts);
                 
-                if (query) {
-                    dropdown.classList.add('active');
-                    clearBtn.style.display = 'block';
+                // Add common synonyms
+                const synonyms = {
+                    'pov': ['point of view', 'perspective'],
+                    'shot': ['camera shot', 'view'],
+                    'subject': ['object', 'target', 'focus'],
+                    'angle': ['view', 'perspective'],
+                    'movement': ['motion', 'move'],
+                    'lighting': ['light', 'illumination']
+                };
+                
+                parts.forEach(part => {
+                    if (synonyms[part]) {
+                        keywords.push(...synonyms[part]);
+                    }
+                });
+                
+                return keywords;
+            }
+            
+            renderOptions(filteredLabels) {
+                this.dropdown.innerHTML = '';
+                
+                if (filteredLabels.length === 0) {
+                    this.dropdown.innerHTML = '<div class="no-results">No matching labels found</div>';
+                    return;
+                }
+                
+                // Group by categories
+                const categories = this.categorizeLabels(filteredLabels);
+                
+                Object.keys(categories).sort().forEach(categoryName => {
+                    // Add category header
+                    const categoryDiv = document.createElement('div');
+                    categoryDiv.className = 'label-option label-category';
+                    categoryDiv.textContent = `${categoryName} (${categories[categoryName].length})`;
+                    this.dropdown.appendChild(categoryDiv);
+                    
+                    // Add labels in this category
+                    categories[categoryName].sort().forEach(labelKey => {
+                        const option = document.createElement('div');
+                        option.className = 'label-option';
+                        option.dataset.value = labelKey;
+                        
+                        const label = this.datasetInfo.labels[labelKey];
+                        option.innerHTML = `
+                            <div class="label-option-name">${label.display_name || labelKey}</div>
+                            <div class="label-option-key">${labelKey}</div>
+                        `;
+                        
+                        option.addEventListener('click', () => {
+                            this.selectLabel(labelKey);
+                        });
+                        
+                        this.dropdown.appendChild(option);
+                    });
+                });
+            }
+            
+            categorizeLabels(labels) {
+                return categorizeLabels(labels);
+            }
+            
+            selectLabel(labelKey) {
+                this.selectedLabel = labelKey;
+                const label = this.datasetInfo.labels[labelKey];
+                
+                this.searchInput.value = label.display_name || labelKey;
+                this.searchInput.classList.add('has-value');
+                this.clearBtn.style.display = 'block';
+                this.hideDropdown();
+                
+                // Update status
+                this.updateSelectionStatus(labelKey, true);
+                
+                // Callback
+                this.onSelect(labelKey);
+            }
+            
+            clearSelection() {
+                this.selectedLabel = '';
+                this.searchInput.value = '';
+                this.searchInput.classList.remove('has-value');
+                this.clearBtn.style.display = 'none';
+                this.filteredLabels = [...this.labels];
+                this.renderOptions(this.labels);
+                this.updateCounter();
+                this.hideDropdown();
+                
+                // Update status
+                this.updateSelectionStatus('', false);
+                
+                // Callback
+                this.onSelect('');
+            }
+            
+            updateSelectionStatus(labelKey, isSelected) {
+                const statusEl = document.getElementById('labelStatus');
+                if (isSelected) {
+                    const label = this.datasetInfo.labels[labelKey];
+                    statusEl.textContent = `Selected: ${label.display_name || labelKey}`;
+                    statusEl.className = 'selection-status';
                 } else {
-                    currentSelection.label = '';
-                    clearBtn.style.display = 'none';
-                    checkLoadButton();
+                    statusEl.textContent = 'No label selected';
+                    statusEl.className = 'selection-status incomplete';
                 }
-            });
+            }
             
-            searchInput.addEventListener('focus', () => {
-                const query = searchInput.value;
-                const filteredLabels = filterLabels(query);
-                renderOptions(filteredLabels);
-                dropdown.classList.add('active');
-            });
+            updateCounter() {
+                const total = this.labels.length;
+                const showing = this.filteredLabels.length;
+                this.counter.textContent = `Showing ${showing} of ${total} labels`;
+                this.counter.style.display = 'block';
+            }
             
-            clearBtn.addEventListener('click', () => {
-                searchInput.value = '';
-                currentSelection.label = '';
-                currentSelection.model = '';
-                dropdown.classList.remove('active');
-                clearBtn.style.display = 'none';
-                renderOptions(labels);
-                
-                // 重置模型选择器
-                const modelSelector = document.getElementById('modelSelector');
-                modelSelector.innerHTML = '<option value="">请先选择标签...</option>';
-                modelSelector.className = 'model-selector selector-disabled';
-                checkLoadButton();
-            });
+            showDropdown() {
+                this.dropdown.classList.add('active');
+            }
             
-            // 点击外部关闭下拉
-            document.addEventListener('click', (e) => {
-                if (!searchContainer.contains(e.target)) {
-                    dropdown.classList.remove('active');
-                }
-            });
+            hideDropdown() {
+                this.dropdown.classList.remove('active');
+                // Remove all highlights
+                this.dropdown.querySelectorAll('.label-option').forEach(opt => 
+                    opt.classList.remove('highlighted')
+                );
+            }
             
-            // 初始化显示所有选项
-            renderOptions(labels);
+            getCurrentSelection() {
+                return this.selectedLabel;
+            }
         }
 
-        // 更新标签列表函数
+        // Check if start analysis button should be enabled
+        function checkStartButton() {
+            const isComplete = currentSelection.dataset && currentSelection.label && currentSelection.model;
+            const startBtn = document.getElementById('startAnalysisBtn');
+            startBtn.disabled = !isComplete;
+            
+            console.log('Current selection state:', currentSelection, 'Button enabled:', isComplete);
+        }
+
+        // Update labels display
         function updateLabels(dataset) {
-            const labelSelector = document.getElementById('labelSelector');
             const labelSearchContainer = document.getElementById('labelSearchContainer');
             const modelSelector = document.getElementById('modelSelector');
             
-            // 重置选择状态
+            // Reset selection state
             currentSelection.label = '';
             currentSelection.model = '';
             
             if (!dataset || !datasetConfig) {
-                labelSelector.style.display = 'block';
                 labelSearchContainer.style.display = 'none';
-                labelSelector.innerHTML = '<option value="">请先选择数据集...</option>';
-                labelSelector.className = 'label-selector selector-disabled';
-                modelSelector.innerHTML = '<option value="">请先选择标签...</option>';
+                modelSelector.innerHTML = '<option value="">Select label first...</option>';
                 modelSelector.className = 'model-selector selector-disabled';
-                checkLoadButton();
+                document.getElementById('labelStatus').textContent = 'No dataset selected';
+                document.getElementById('labelStatus').className = 'selection-status incomplete';
+                checkStartButton();
                 return;
             }
 
             const datasetInfo = datasetConfig.datasets[dataset];
             if (!datasetInfo || !datasetInfo.labels) {
-                labelSelector.style.display = 'block';
                 labelSearchContainer.style.display = 'none';
-                labelSelector.className = 'label-selector selector-disabled';
-                labelSelector.innerHTML = '<option value="">此数据集未配置标签</option>';
-                showMessage(`数据集 "${dataset}" 未配置标签信息`, 'error');
+                showMessage(`Dataset "${dataset}" has no label configuration`, 'error');
+                document.getElementById('labelStatus').textContent = 'Dataset has no labels';
+                document.getElementById('labelStatus').className = 'selection-status incomplete';
                 return;
             }
             
             const labels = Object.keys(datasetInfo.labels);
             if (labels.length === 0) {
-                labelSelector.style.display = 'block';
                 labelSearchContainer.style.display = 'none';
-                labelSelector.className = 'label-selector selector-disabled';
-                labelSelector.innerHTML = '<option value="">此数据集中未定义标签</option>';
+                document.getElementById('labelStatus').textContent = 'No labels defined in dataset';
+                document.getElementById('labelStatus').className = 'selection-status incomplete';
                 return;
             }
             
-            // 如果标签数量很多，使用搜索界面
-            if (labels.length > 10) {
-                labelSelector.style.display = 'none';
-                labelSearchContainer.style.display = 'block';
-                
-                // 清空搜索框
-                document.getElementById('labelSearch').value = '';
-                document.getElementById('clearLabelSearch').style.display = 'none';
-                
-                // 创建搜索功能
-                createLabelSearch(labels, datasetInfo);
-                
-            } else {
-                // 标签数量少时使用传统下拉框
-                labelSearchContainer.style.display = 'none';
-                labelSelector.style.display = 'block';
-                labelSelector.className = 'label-selector';
-                labelSelector.innerHTML = '<option value="">请选择标签...</option>';
-                
-                labels.forEach(labelKey => {
-                    const label = datasetInfo.labels[labelKey];
-                    const option = document.createElement('option');
-                    option.value = labelKey;
-                    option.textContent = label.display_name || labelKey;
-                    labelSelector.appendChild(option);
-                });
+            // Show label search interface
+            labelSearchContainer.style.display = 'block';
+            
+            // Initialize label search component
+            if (labelSearchInstance) {
+                labelSearchInstance.clearSelection();
             }
+            
+            labelSearchInstance = new LabelSearchComponent(
+                labels,
+                datasetInfo,
+                (selectedLabel) => {
+                    currentSelection.label = selectedLabel;
+                    updateModels(currentSelection.dataset, selectedLabel);
+                }
+            );
 
-            console.log(`数据集 ${dataset} 的标签:`, labels);
+            console.log(`Dataset ${dataset} labels:`, labels);
 
-            // 重置模型选择器
-            modelSelector.innerHTML = '<option value="">请先选择标签...</option>';
+            // Reset model selector
+            modelSelector.innerHTML = '<option value="">Select label first...</option>';
             modelSelector.className = 'model-selector selector-disabled';
-            checkLoadButton();
+            document.getElementById('modelStatus').textContent = 'No label selected';
+            document.getElementById('modelStatus').className = 'selection-status incomplete';
+            checkStartButton();
         }
 
-        // 更新模型列表
+        // Update models list
         function updateModels(dataset, label) {
             const modelSelector = document.getElementById('modelSelector');
+            const modelStatus = document.getElementById('modelStatus');
             
-            // 重置模型选择状态
+            // Reset model selection state
             currentSelection.model = '';
             
             if (!dataset || !label || !datasetConfig) {
-                modelSelector.innerHTML = '<option value="">请先选择标签...</option>';
+                modelSelector.innerHTML = '<option value="">Select label first...</option>';
                 modelSelector.className = 'model-selector selector-disabled';
-                checkLoadButton();
+                modelStatus.textContent = 'No label selected';
+                modelStatus.className = 'selection-status incomplete';
+                checkStartButton();
                 return;
             }
 
             const datasetInfo = datasetConfig.datasets[dataset];
             if (!datasetInfo || !datasetInfo.labels || !datasetInfo.labels[label]) {
                 modelSelector.className = 'model-selector selector-disabled';
-                modelSelector.innerHTML = '<option value="">标签配置错误</option>';
+                modelSelector.innerHTML = '<option value="">Label configuration error</option>';
+                modelStatus.textContent = 'Label configuration error';
+                modelStatus.className = 'selection-status incomplete';
                 return;
             }
             
@@ -847,9 +1054,102 @@
             
             if (models.length === 0) {
                 modelSelector.className = 'model-selector selector-disabled';
-                modelSelector.innerHTML = '<option value="">此标签中未定义模型</option>';
+                modelSelector.innerHTML = '<option value="">No models defined for this label</option>';
+                modelStatus.textContent = 'No models available';
+                modelStatus.className = 'selection-status incomplete';
                 return;
             }
             
             modelSelector.className = 'model-selector';
-            modelSelector.innerHTML = '<option value
+            modelSelector.innerHTML = '<option value="">Select model...</option>';
+            
+            models.forEach(model => {
+                const option = document.createElement('option');
+                option.value = model;
+                option.textContent = model;
+                modelSelector.appendChild(option);
+            });
+
+            console.log(`Label ${label} models:`, models);
+            modelStatus.textContent = 'No model selected';
+            modelStatus.className = 'selection-status incomplete';
+            checkStartButton();
+        }
+
+        // Save selection to localStorage and navigate
+        function startAnalysis() {
+            const segment = document.getElementById('segmentInput').value;
+            const maxCases = document.getElementById('maxCasesInput').value;
+
+            if (!currentSelection.dataset || !currentSelection.label || !currentSelection.model) {
+                showMessage('Please complete all selections', 'error');
+                return;
+            }
+
+            // Validate parameters
+            const segmentValue = parseFloat(segment);
+            const maxCasesValue = parseInt(maxCases);
+            
+            if (isNaN(segmentValue) || segmentValue <= 0 || segmentValue > 1) {
+                showMessage('Segment threshold must be between 0 and 1', 'error');
+                return;
+            }
+            
+            if (isNaN(maxCasesValue) || maxCasesValue <= 0) {
+                showMessage('Max cases must be greater than 0', 'error');
+                return;
+            }
+
+            // Save selection to localStorage
+            const selectionData = {
+                dataset: currentSelection.dataset,
+                label: currentSelection.label,
+                model: currentSelection.model,
+                segment: segmentValue,
+                maxCases: maxCasesValue,
+                timestamp: Date.now()
+            };
+
+            localStorage.setItem('videoAnalysisSelection', JSON.stringify(selectionData));
+            
+            showMessage('Navigating to visualization page...', 'loading');
+            
+            // Navigate to visualization page
+            setTimeout(() => {
+                window.location.href = 'visualization.html';
+            }, 1000);
+        }
+
+        // Event listeners
+        document.getElementById('datasetSelector').addEventListener('change', function(e) {
+            currentSelection.dataset = e.target.value;
+            updateLabels(e.target.value);
+        });
+
+        document.getElementById('modelSelector').addEventListener('change', function(e) {
+            currentSelection.model = e.target.value;
+            const modelStatus = document.getElementById('modelStatus');
+            
+            if (e.target.value) {
+                modelStatus.textContent = `Selected: ${e.target.value}`;
+                modelStatus.className = 'selection-status';
+            } else {
+                modelStatus.textContent = 'No model selected';
+                modelStatus.className = 'selection-status incomplete';
+            }
+            
+            checkStartButton();
+        });
+
+        document.getElementById('startAnalysisBtn').addEventListener('click', startAnalysis);
+
+        // Page load initialization
+        document.addEventListener('DOMContentLoaded', async function() {
+            const success = await loadDatasetConfig();
+            if (success) {
+                initializeDatasets();
+            }
+        });
+    </script>
+</body>
+</html>
