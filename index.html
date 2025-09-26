@@ -116,6 +116,125 @@
             cursor: not-allowed;
         }
 
+        /* 搜索框样式 */
+        .search-container {
+            position: relative;
+            margin-bottom: 15px;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 12px 40px 12px 20px;
+            border: 2px solid #e9ecef;
+            border-radius: 10px;
+            font-size: 16px;
+            background: white;
+            transition: all 0.3s ease;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: #4facfe;
+            box-shadow: 0 0 0 4px rgba(79, 172, 254, 0.1);
+        }
+
+        .search-icon {
+            position: absolute;
+            right: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #6c757d;
+        }
+
+        .clear-search {
+            position: absolute;
+            right: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            color: #6c757d;
+            cursor: pointer;
+            font-size: 18px;
+            display: none;
+        }
+
+        .clear-search:hover {
+            color: #dc3545;
+        }
+
+        /* 自定义下拉框样式 */
+        .custom-select {
+            position: relative;
+        }
+
+        .select-dropdown {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: white;
+            border: 2px solid #4facfe;
+            border-top: none;
+            border-radius: 0 0 10px 10px;
+            max-height: 300px;
+            overflow-y: auto;
+            z-index: 1000;
+            display: none;
+        }
+
+        .select-dropdown.active {
+            display: block;
+        }
+
+        .select-option {
+            padding: 12px 20px;
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+            border-bottom: 1px solid #f1f3f4;
+        }
+
+        .select-option:hover {
+            background-color: #f8f9fa;
+        }
+
+        .select-option.selected {
+            background-color: #4facfe;
+            color: white;
+        }
+
+        .select-option.highlighted {
+            background-color: #e3f2fd;
+        }
+
+        .no-results {
+            padding: 20px;
+            text-align: center;
+            color: #6c757d;
+            font-style: italic;
+        }
+
+        /* 标签计数器 */
+        .label-counter {
+            font-size: 0.9em;
+            color: #6c757d;
+            margin-top: 10px;
+            text-align: center;
+        }
+
+        /* 分组标签样式 */
+        .label-group {
+            font-weight: bold;
+            background-color: #f1f3f4;
+            color: #495057;
+            border-bottom: 2px solid #dee2e6;
+        }
+
+        .label-group:hover {
+            background-color: #f1f3f4;
+            cursor: default;
+        }
+
         .parameters-section {
             background: white;
             border-radius: 15px;
@@ -283,6 +402,15 @@
                     <select id="labelSelector" class="label-selector selector-disabled">
                         <option value="">请先选择数据集...</option>
                     </select>
+                    
+                    <div class="search-container" id="labelSearchContainer" style="display: none;">
+                        <input type="text" id="labelSearch" class="search-input" placeholder="搜索标签...">
+                        <span class="search-icon">🔍</span>
+                        <button class="clear-search" id="clearLabelSearch">✕</button>
+                        <div class="select-dropdown" id="labelDropdown"></div>
+                    </div>
+                    
+                    <div class="label-counter" id="labelCounter"></div>
                 </div>
 
                 <div class="selection-card">
@@ -436,12 +564,183 @@
             console.log('数据集初始化完成:', datasets);
         }
 
-        // 更新标签列表
+        // 分类标签的函数
+        function categorizeLabels(labels) {
+            const categories = {};
+            
+            labels.forEach(labelKey => {
+                // 根据标签名称进行分类
+                let category = '其他';
+                
+                if (labelKey.includes('pov') || labelKey.includes('_pov')) {
+                    category = '视角类型 (POV)';
+                } else if (labelKey.includes('distortion')) {
+                    category = '畸变类型';
+                } else if (labelKey.includes('subject')) {
+                    category = '主体相关';
+                } else if (labelKey.includes('focus')) {
+                    category = '焦点相关';
+                } else if (labelKey.includes('angle') || labelKey.includes('height')) {
+                    category = '角度和高度';
+                } else if (labelKey.includes('shot') && !labelKey.includes('subject')) {
+                    category = '镜头类型';
+                } else if (labelKey.includes('framing') || labelKey.includes('size')) {
+                    category = '构图相关';
+                } else if (labelKey.includes('transition')) {
+                    category = '过渡效果';
+                }
+                
+                if (!categories[category]) {
+                    categories[category] = [];
+                }
+                categories[category].push(labelKey);
+            });
+            
+            return categories;
+        }
+
+        // 创建搜索功能
+        function createLabelSearch(labels, datasetInfo) {
+            const searchContainer = document.getElementById('labelSearchContainer');
+            const searchInput = document.getElementById('labelSearch');
+            const dropdown = document.getElementById('labelDropdown');
+            const clearBtn = document.getElementById('clearLabelSearch');
+            const counter = document.getElementById('labelCounter');
+            
+            let currentLabels = [...labels];
+            let selectedLabel = '';
+            
+            // 更新计数器
+            function updateCounter(filteredCount = null) {
+                const total = labels.length;
+                const showing = filteredCount !== null ? filteredCount : total;
+                counter.textContent = `显示 ${showing} / ${total} 个标签`;
+            }
+            
+            // 渲染下拉选项
+            function renderOptions(filteredLabels) {
+                dropdown.innerHTML = '';
+                
+                if (filteredLabels.length === 0) {
+                    dropdown.innerHTML = '<div class="no-results">未找到匹配的标签</div>';
+                    updateCounter(0);
+                    return;
+                }
+                
+                // 分类显示
+                const categories = categorizeLabels(filteredLabels);
+                
+                Object.keys(categories).sort().forEach(categoryName => {
+                    // 添加分类标题
+                    const categoryDiv = document.createElement('div');
+                    categoryDiv.className = 'select-option label-group';
+                    categoryDiv.textContent = `${categoryName} (${categories[categoryName].length})`;
+                    dropdown.appendChild(categoryDiv);
+                    
+                    // 添加该分类下的标签
+                    categories[categoryName].sort().forEach(labelKey => {
+                        const option = document.createElement('div');
+                        option.className = 'select-option';
+                        option.dataset.value = labelKey;
+                        option.innerHTML = `
+                            <strong>${datasetInfo.labels[labelKey].display_name}</strong>
+                            <br><small style="color: #6c757d;">${labelKey}</small>
+                        `;
+                        
+                        option.addEventListener('click', () => {
+                            selectedLabel = labelKey;
+                            searchInput.value = datasetInfo.labels[labelKey].display_name;
+                            dropdown.classList.remove('active');
+                            
+                            // 更新模型选择器
+                            const dataset = document.getElementById('datasetSelector').value;
+                            updateModels(dataset, labelKey);
+                            
+                            clearBtn.style.display = 'block';
+                        });
+                        
+                        dropdown.appendChild(option);
+                    });
+                });
+                
+                updateCounter(filteredLabels.length);
+            }
+            
+            // 搜索过滤
+            function filterLabels(query) {
+                if (!query) {
+                    return labels;
+                }
+                
+                query = query.toLowerCase();
+                return labels.filter(labelKey => {
+                    const label = datasetInfo.labels[labelKey];
+                    const displayName = (label.display_name || labelKey).toLowerCase();
+                    const key = labelKey.toLowerCase();
+                    
+                    return displayName.includes(query) || key.includes(query);
+                });
+            }
+            
+            // 事件监听
+            searchInput.addEventListener('input', (e) => {
+                const query = e.target.value;
+                const filteredLabels = filterLabels(query);
+                renderOptions(filteredLabels);
+                
+                if (query) {
+                    dropdown.classList.add('active');
+                    clearBtn.style.display = 'block';
+                } else {
+                    selectedLabel = '';
+                    clearBtn.style.display = 'none';
+                }
+            });
+            
+            searchInput.addEventListener('focus', () => {
+                const query = searchInput.value;
+                const filteredLabels = filterLabels(query);
+                renderOptions(filteredLabels);
+                dropdown.classList.add('active');
+            });
+            
+            clearBtn.addEventListener('click', () => {
+                searchInput.value = '';
+                selectedLabel = '';
+                dropdown.classList.remove('active');
+                clearBtn.style.display = 'none';
+                renderOptions(labels);
+                
+                // 重置模型选择器
+                const modelSelector = document.getElementById('modelSelector');
+                modelSelector.innerHTML = '<option value="">请先选择标签...</option>';
+                modelSelector.className = 'model-selector selector-disabled';
+                document.getElementById('loadDataBtn').disabled = true;
+            });
+            
+            // 点击外部关闭下拉
+            document.addEventListener('click', (e) => {
+                if (!searchContainer.contains(e.target)) {
+                    dropdown.classList.remove('active');
+                }
+            });
+            
+            // 初始化显示所有选项
+            renderOptions(labels);
+            
+            // 返回获取当前选中标签的函数
+            return () => selectedLabel;
+        }
+
+        // 更新标签列表函数
         function updateLabels(dataset) {
             const labelSelector = document.getElementById('labelSelector');
+            const labelSearchContainer = document.getElementById('labelSearchContainer');
             const modelSelector = document.getElementById('modelSelector');
             
             if (!dataset || !datasetConfig) {
+                labelSelector.style.display = 'block';
+                labelSearchContainer.style.display = 'none';
                 labelSelector.innerHTML = '<option value="">请先选择数据集...</option>';
                 labelSelector.className = 'label-selector selector-disabled';
                 modelSelector.innerHTML = '<option value="">请先选择标签...</option>';
@@ -452,6 +751,8 @@
 
             const datasetInfo = datasetConfig.datasets[dataset];
             if (!datasetInfo || !datasetInfo.labels) {
+                labelSelector.style.display = 'block';
+                labelSearchContainer.style.display = 'none';
                 labelSelector.className = 'label-selector selector-disabled';
                 labelSelector.innerHTML = '<option value="">此数据集未配置标签</option>';
                 showMessage(`数据集 "${dataset}" 未配置标签信息`, 'error');
@@ -460,21 +761,39 @@
             
             const labels = Object.keys(datasetInfo.labels);
             if (labels.length === 0) {
+                labelSelector.style.display = 'block';
+                labelSearchContainer.style.display = 'none';
                 labelSelector.className = 'label-selector selector-disabled';
                 labelSelector.innerHTML = '<option value="">此数据集中未定义标签</option>';
                 return;
             }
             
-            labelSelector.className = 'label-selector';
-            labelSelector.innerHTML = '<option value="">请选择标签...</option>';
-            
-            labels.forEach(labelKey => {
-                const label = datasetInfo.labels[labelKey];
-                const option = document.createElement('option');
-                option.value = labelKey;
-                option.textContent = label.display_name || labelKey;
-                labelSelector.appendChild(option);
-            });
+            // 如果标签数量很多，使用搜索界面
+            if (labels.length > 10) {
+                labelSelector.style.display = 'none';
+                labelSearchContainer.style.display = 'block';
+                
+                // 创建搜索功能
+                const getCurrentLabel = createLabelSearch(labels, datasetInfo);
+                
+                // 保存获取当前选中标签的函数
+                window.getCurrentSelectedLabel = getCurrentLabel;
+                
+            } else {
+                // 标签数量少时使用传统下拉框
+                labelSearchContainer.style.display = 'none';
+                labelSelector.style.display = 'block';
+                labelSelector.className = 'label-selector';
+                labelSelector.innerHTML = '<option value="">请选择标签...</option>';
+                
+                labels.forEach(labelKey => {
+                    const label = datasetInfo.labels[labelKey];
+                    const option = document.createElement('option');
+                    option.value = labelKey;
+                    option.textContent = label.display_name || labelKey;
+                    labelSelector.appendChild(option);
+                });
+            }
 
             console.log(`数据集 ${dataset} 的标签:`, labels);
 
@@ -537,7 +856,18 @@
         // 保存选择到localStorage并跳转
         function loadData() {
             const dataset = document.getElementById('datasetSelector').value;
-            const label = document.getElementById('labelSelector').value;
+            
+            // 获取标签值 - 根据当前使用的界面类型
+            let label = '';
+            const labelSearchContainer = document.getElementById('labelSearchContainer');
+            if (labelSearchContainer.style.display === 'none') {
+                // 使用传统下拉框
+                label = document.getElementById('labelSelector').value;
+            } else {
+                // 使用搜索界面
+                label = window.getCurrentSelectedLabel ? window.getCurrentSelectedLabel() : '';
+            }
+            
             const model = document.getElementById('modelSelector').value;
             const segment = document.getElementById('segmentInput').value;
             const maxCases = document.getElementById('maxCasesInput').value;
